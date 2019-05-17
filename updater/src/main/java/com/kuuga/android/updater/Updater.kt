@@ -1,14 +1,17 @@
 package com.kuuga.android.updater
 
 import android.os.AsyncTask
-import androidx.lifecycle.MutableLiveData
 import org.jsoup.Jsoup
 
 class Updater(private val packageName: String = "", private val currentVersion: String = "") :
     AsyncTask<Void, String, String>() {
 
-    var update: MutableLiveData<Boolean> = MutableLiveData()
-    var error: MutableLiveData<Throwable> = MutableLiveData()
+    var mListener: OnUpdaterListener? = null
+
+    fun check(listener: OnUpdaterListener) {
+        mListener = listener
+        execute()
+    }
 
     override fun doInBackground(vararg params: Void?): String? {
         var newVersion: String? = null
@@ -31,7 +34,7 @@ class Updater(private val packageName: String = "", private val currentVersion: 
             }
             newVersion
         } catch (e: Exception) {
-            error.postValue(e)
+            mListener?.onFailed(VersionFormatException())
             newVersion
         }
     }
@@ -39,7 +42,46 @@ class Updater(private val packageName: String = "", private val currentVersion: 
     override fun onPostExecute(result: String?) {
         super.onPostExecute(result)
         if (result != null && result.isNotEmpty()) {
-            update.postValue(currentVersion.toFloat() >= result.toFloat())
+            val googleVersions = result.split(".")
+            val myVersions = currentVersion.split(".")
+
+            if (googleVersions.size == myVersions.size) {
+                var more = false
+                var start = 0
+                repeat(myVersions.size) { i ->
+                    val m: Int
+                    val g: Int
+
+                    try {
+                        m = myVersions[i].toInt()
+                        g = googleVersions[i].toInt()
+
+                        if (start == 0) {
+                            if (g > m) {
+                                more = true
+                            }
+                        } else {
+                            if (!more) {
+                                if (g > m) {
+                                    more = true
+                                }
+                            }
+                        }
+
+                    } catch (e: NumberFormatException) {
+                        more = false
+                        start = i
+                    }
+                }
+
+                if (more) {
+                    mListener?.onLessGooglePlay()
+                } else {
+                    mListener?.onEqualGooglePlay()
+                }
+            } else {
+                mListener?.onFailed(VersionFormatException())
+            }
         }
     }
 }
