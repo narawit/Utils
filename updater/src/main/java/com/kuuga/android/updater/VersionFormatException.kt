@@ -1,4 +1,4 @@
-package com.kuuga.android.updater
+package com.kuuga.updater
 
 import java.io.IOException
 

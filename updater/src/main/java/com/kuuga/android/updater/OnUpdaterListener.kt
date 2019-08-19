@@ -1,4 +1,4 @@
-package com.kuuga.android.updater
+package com.kuuga.updater
 
 interface OnUpdaterListener{
     fun onLessGooglePlay()
