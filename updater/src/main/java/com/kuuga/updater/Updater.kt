@@ -1,4 +1,4 @@
-package com.kuuga.android.updater
+package com.kuuga.updater
 
 import android.os.AsyncTask
 import org.jsoup.Jsoup
@@ -34,7 +34,7 @@ class Updater(private val packageName: String = "", private val currentVersion: 
             }
             newVersion
         } catch (e: Exception) {
-            mListener?.onFailed(VersionFormatException())
+            mListener?.onFailed(e)
             newVersion
         }
     }
